@@ -1,7 +1,13 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:happy_tech_mastering_api_with_flutter/core/api/api_consumer.dart';
+import 'package:happy_tech_mastering_api_with_flutter/core/api/api_strings.dart';
+import 'package:happy_tech_mastering_api_with_flutter/core/databases/cache/cache_helper.dart';
 import 'package:happy_tech_mastering_api_with_flutter/cubit/user_state.dart';
+import 'package:happy_tech_mastering_api_with_flutter/models/sign_in_model.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class UserCubit extends Cubit<UserState> {
   UserCubit() : super(UserInitial());
@@ -25,4 +31,31 @@ class UserCubit extends Cubit<UserState> {
   TextEditingController signUpPassword = TextEditingController();
   //Sign up confirm password
   TextEditingController confirmPassword = TextEditingController();
+
+  SignInModel? _signInModel;
+  void loginWithEmailAndPassword() async {
+    emit(UserLoginLoadingState());
+    try {
+      await ApiConsumer().post(Endpoints.login, data: {
+        ApiKey.email: signInEmail.text,
+        ApiKey.password: signInPassword.text
+      }).then((value) {
+        emit(UserLoginSuccessState());
+        _signInModel = SignInModel.fromJson(value.data);
+        Map<String, dynamic> successResponse =
+            JwtDecoder.decode(_signInModel!.token);
+        CacheHelper()
+            .saveData(key: ApiKey.id, value: successResponse[ApiKey.id]);
+      });
+    } on DioException catch (e) {
+      if (e.response!.statusCode == 403) {
+        emit(UserLoginErrorState(e.response!.data['ErrorMessage']));
+      } else if (e.response!.statusCode == 400) {
+        if (e.response!.data['ErrorMessage'] == 'validationError') {
+          emit(UserLoginErrorState(
+              'invalid Email or password less than 6 characters '));
+        }
+      }
+    }
+  }
 }
