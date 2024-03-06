@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:happy_tech_mastering_api_with_flutter/cubit/user_cubit.dart';
 import 'package:happy_tech_mastering_api_with_flutter/cubit/user_state.dart';
+import 'package:happy_tech_mastering_api_with_flutter/screens/profile_screen.dart';
 import 'package:happy_tech_mastering_api_with_flutter/widgets/custom_form_button.dart';
 import 'package:happy_tech_mastering_api_with_flutter/widgets/custom_input_field.dart';
 import 'package:happy_tech_mastering_api_with_flutter/widgets/dont_have_an_account.dart';
@@ -36,6 +37,12 @@ class SignInScreen extends StatelessWidget {
                       if (state is UserLoginSuccessState) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Login Successful')));
+                        userCubit.getUserData();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
+                            ));
                       } else if (state is UserLoginErrorState) {
                         ScaffoldMessenger.of(context)
                             .showSnackBar(SnackBar(content: Text(state.error)));

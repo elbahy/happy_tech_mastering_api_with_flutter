@@ -7,6 +7,7 @@ import 'package:happy_tech_mastering_api_with_flutter/core/databases/cache/cache
 import 'package:happy_tech_mastering_api_with_flutter/core/functions/upload_pic_api.dart';
 import 'package:happy_tech_mastering_api_with_flutter/cubit/user_state.dart';
 import 'package:happy_tech_mastering_api_with_flutter/models/sign_in_model.dart';
+import 'package:happy_tech_mastering_api_with_flutter/models/user_data_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
@@ -36,6 +37,8 @@ class UserCubit extends Cubit<UserState> {
   String? location;
 
   SignInModel? _signInModel;
+  UserDataModel? userData;
+
   void loginWithEmailAndPassword() async {
     emit(UserLoginLoadingState());
     try {
@@ -49,6 +52,7 @@ class UserCubit extends Cubit<UserState> {
             JwtDecoder.decode(_signInModel!.token);
         CacheHelper()
             .saveData(key: ApiKey.id, value: successResponse[ApiKey.id]);
+        CacheHelper().saveData(key: ApiKey.token, value: _signInModel!.token);
       });
     } on DioException catch (e) {
       if (e.response!.statusCode == 403) {
@@ -93,5 +97,17 @@ class UserCubit extends Cubit<UserState> {
   updateLocation(String location) {
     this.location = location;
     emit(UpdateLocationState());
+  }
+
+  getUserData() async {
+    emit(GetUserDataLoadingState());
+    try {
+      await ApiConsumer().get(Endpoints.getuserData(), data: {}).then((value) {
+        userData = UserDataModel.fromJson(value.data);
+        emit(GetUserDataSuccessState(userData: userData!));
+      });
+    } on Exception catch (e) {
+      emit(GetUserDataErrorState(error: e.toString()));
+    }
   }
 }

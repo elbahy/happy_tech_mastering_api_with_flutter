@@ -1,12 +1,18 @@
+import 'package:happy_tech_mastering_api_with_flutter/core/databases/cache/cache_helper.dart';
+
 abstract class Endpoints {
   static const String baseUrl = 'https://food-api-omega.vercel.app/api/v1/';
   static const String login = 'user/signin';
   static const String register = 'user/signup';
   static const String checkEmail = 'user/check-email';
-  static const String getUserData = 'user/get-user';
+
   static const String logout = 'user/logout';
   static const String updateUser = 'user/update';
   static const String deleteUser = 'user/delete';
+
+  static String getuserData() {
+    return 'user/get-user/${CacheHelper().getData(key: ApiKey.id)}';
+  }
 }
 
 abstract class ApiKey {
